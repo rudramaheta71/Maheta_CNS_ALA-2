@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safe Malware Simulator</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: Arial, sans-serif; background: #f3f5f9;
+    color: #202938;
+  }
+  header {
+    background: #202b45; color: white; text-align: center;
+    padding: 28px 16px;
+  }
+  header h1 { margin: 0 0 8px; font-size: 28px; }
+  header p { margin: 0; color: #d5deef; }
+  main { max-width: 900px; margin: 28px auto; padding: 0 16px; }
+  .notice {
+    background: #e5f7ed; border-left: 4px solid #2b9b62;
+    padding: 12px 14px; border-radius: 5px; margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+  .card {
+    background: white; padding: 20px; border-radius: 10px;
+    box-shadow: 0 3px 12px #15254412; border: 1px solid #e2e7f0;
+  }
+  .card h2 { font-size: 19px; margin: 0 0 10px; }
+  .card p { color: #596579; line-height: 1.5; min-height: 48px; }
+  button {
+    background: #3d5bd9; color: white; border: 0; padding: 11px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 14px; width: 100%;
+  }
+  button:hover { background: #2d47b7; }
+  .secondary { margin-top: 12px; background: #465268; }
+  #output {
+    margin-top: 22px; background: white; border: 1px solid #dfe5ee;
+    border-radius: 10px; padding: 20px; min-height: 90px;
+  }
+  #output h2 { margin-top: 0; }
+  #output pre {
+    white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f6fa;
+    padding: 14px; border-radius: 6px; line-height: 1.6;
+  }
+  footer { text-align: center; color: #667085; font-size: 13px; padding: 22px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Safe Malware Simulator</h1>
+  <p>A simple educational demonstration of Virus, Worm, and Trojan behavior</p>
+</header>
+
+<main>
+  <div class="notice">
+    <strong>Safe mode:</strong> This page only simulates fictional files, computers, and programs.
+    It does not modify real files, access a network, or run programs.
+  </div>
+
+  <div class="cards">
+    <section class="card">
+      <h2>1. Virus Simulation</h2>
+      <p>Shows how a simulated virus may spread between fictional files.</p>
+      <button onclick="runVirus()">Run Virus</button>
+    </section>
+    <section class="card">
+      <h2>2. Worm Simulation</h2>
+      <p>Shows how a fictional worm may reach connected computers.</p>
+      <button onclick="runWorm()">Run Worm</button>
+    </section>
+    <section class="card">
+      <h2>3. Trojan Simulation</h2>
+      <p>Demonstrates a suspicious program disguised as a legitimate app.</p>
+      <button onclick="runTrojan()">Run Trojan</button>
+    </section>
+    <section class="card">
+      <h2>4. Compare Malware</h2>
+      <p>Review the main differences between the three malware categories.</p>
+      <button onclick="compare()">Compare</button>
+    </section>
+  </div>
+
+  <div id="output" aria-live="polite">
+    <h2>Simulation Output</h2>
+    <p>Select one of the options above to see the result here.</p>
+  </div>
+  <button class="secondary" onclick="runAll()">Run All Simulations</button>
+  <button class="secondary" onclick="clearOutput()">Clear Output</button>
+</main>
+
+<footer>Safe Malware Simulator · For educational use only</footer>
+
+<script>
+function show(title, text) {
+  document.getElementById("output").innerHTML =
+    "<h2>" + title + "</h2><pre>" + text + "</pre>";
+}
+function runVirus() {
+  const files = ["Document_A", "Document_B", "Document_C", "Photo_A",
+                 "Photo_B", "Report_A", "Report_B", "Spreadsheet_A"];
+  const infected = new Set(["Document_A"]);
+  let log = "Initial state: Document_A is simulated as infected.\n";
+  for (let round = 1; round <= 3; round++) {
+    const fresh = [];
+    files.forEach(file => {
+      if (!infected.has(file) && Math.random() < 0.45) fresh.push(file);
+    });
+    fresh.forEach(file => infected.add(file));
+    log += "\nRound " + round + ": " +
+      (fresh.length ? fresh.join(", ") + " became simulated as infected." : "No new simulated infections.") + "\n";
+  }
+  log += "\nFinal result: " + infected.size + " of " + files.length +
+         " fictional files infected; " + (files.length - infected.size) + " clean.";
+  show("Virus Simulation", log);
+}
+function runWorm() {
+  const network = {
+    "PC-1":["PC-2","PC-3"], "PC-2":["PC-1","PC-4","PC-5"],
+    "PC-3":["PC-1","PC-6"], "PC-4":["PC-2","PC-7"],
+    "PC-5":["PC-2","PC-8"], "PC-6":["PC-3"],
+    "PC-7":["PC-4"], "PC-8":["PC-5"]
+  };
+  const infected = new Set(["PC-1"]);
+  let log = "Starting computer: PC-1\n";
+  for (let round = 1; round <= 5; round++) {
+    const fresh = new Set();
+    infected.forEach(pc => (network[pc] || []).forEach(neighbor => {
+      if (!infected.has(neighbor) && Math.random() < 0.65) fresh.add(neighbor);
+    }));
+    fresh.forEach(pc => infected.add(pc));
+    log += "\nRound " + round + ": " +
+      (fresh.size ? [...fresh].join(", ") + " reached in simulation." : "No new simulated computers reached.") + "\n";
+    if (infected.size === Object.keys(network).length) break;
+  }
+  log += "\nFinal result: " + infected.size + " of 8 fictional computers reached.";
+  show("Worm Simulation", log);
+}
+function runTrojan() {
+  show("Trojan Simulation",
+    "Mock program: System_Update.exe\n" +
+    "Appearance: System update\n\n" +
+    "[SIMULATED] A suspicious program is shown as if it were legitimate.\n" +
+    "[SIMULATED] No program was launched and no real system changes were made.\n\n" +
+    "Real system harm: NONE");
+}
+function compare() {
+  show("Malware Comparison",
+    "Virus  - Replicates by attaching to other objects.\n" +
+    "Worm   - Can spread between connected systems.\n" +
+    "Trojan - Pretends to be a legitimate program.\n\n" +
+    "All examples on this website are fictional simulations.");
+}
+function runAll() {
+  runVirus();
+  const first = document.getElementById("output").innerText;
+  runWorm();
+  const second = document.getElementById("output").innerText;
+  runTrojan();
+  const third = document.getElementById("output").innerText;
+  show("All Simulations — Summary",
+    first + "\n\n-------------------------\n\n" +
+    second + "\n\n-------------------------\n\n" + third);
+}
+function clearOutput() {
+  document.getElementById("output").innerHTML =
+    "<h2>Simulation Output</h2><p>Output cleared. Choose a simulation above.</p>";
+}
+</script>
+</body>
+</html>
